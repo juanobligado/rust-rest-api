@@ -5,15 +5,15 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=app_db
-    command: ["postgres", "-c", "log_statement=all"]      
+    command: ["postgres", "-c", "log_statement=all"]
   redis:
     image: 'redis:latest'
   app: 
     build: .
     environment:
       - DATABASE_URL=postgres://postgres:postgres@postgres/app_db
-    ports:
-      - 8000:8000
+      - ROCKET_DATABASES={pg_db={url=postgres://postgres:postgres@postgres/app_db}}
+      - RUST_BACKTRACE=1
     volumes:
       - ./:/app/
   
