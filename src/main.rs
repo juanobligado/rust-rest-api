@@ -1,12 +1,11 @@
 use rocket_db_pools::Database;
+
+
 mod models;
 mod schema;
 mod repositories;
 mod rocket_routes;
 
-#[derive(Database)]
-#[database("pg_db")]
-struct DbConn(rocket_db_pools::diesel::PgPool);
 
 
 #[rocket::main]
@@ -24,7 +23,7 @@ async fn main() {
                 rocket_routes::crates::update_crate,
                 rocket_routes::crates::delete_crate,
             ])
-        .attach(DbConn::init())
+        .attach(rocket_routes::DbConn::init())
         .launch()
         .await;
 }
