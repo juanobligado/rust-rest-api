@@ -1,16 +1,21 @@
 [package]
-name = "rust-api-course"
+name = "backend_crate"
 version = "0.1.0"
 edition = "2021"
+default-run = "server"
 
 [dependencies]
 diesel = {  version = "2.1", features = ["chrono"] }
 diesel-async = { version = "0.4" , "features" = ["postgres"] }
 chrono = { version = "0.4", features = ["serde"] }
 rocket = { version = "0.5", features = ["json"] }
-rocket_db_pools = { version = "0.1", features = ["diesel_postgres"] }
+rocket_db_pools = { version = "0.1", features = ["diesel_postgres", "deadpool_redis"] }
 serde = { version = "1.0" }
 serde_json = "1.0"
+clap = "4.5.18"
+tokio = "1.40.0"
+argon2 = "0.5.3"
+rand = "0.8.5"
 
 
 [dev-dependencies]

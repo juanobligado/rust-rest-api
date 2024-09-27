@@ -1,7 +1,7 @@
+use crate::schema::*;
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
-use crate::schema::*;
-use serde::{Serialize,Deserialize};
+use serde::{Deserialize, Serialize};
 #[derive(Queryable, Serialize, Deserialize)]
 pub struct Rustacean {
     pub id: i32,
@@ -38,7 +38,7 @@ pub struct NewCrate {
     pub description: Option<String>,
 }
 
-#[derive(Queryable, Serialize, Deserialize)]
+#[derive(Debug, Queryable, Serialize, Deserialize, Identifiable)]
 pub struct User {
     pub id: i32,
     pub username: String,
@@ -53,7 +53,7 @@ pub struct NewUser {
     pub password: String,
 }
 
-#[derive(Queryable, Serialize, Deserialize)]
+#[derive(Queryable, Serialize, Deserialize, Identifiable, Debug)]
 pub struct Role {
     pub id: i32,
     pub code: String,
@@ -68,16 +68,17 @@ pub struct NewRole {
     pub name: String,
 }
 
-#[derive(Queryable, Serialize, Deserialize)]
+#[derive(Queryable, Serialize, Deserialize, Associations, Identifiable, Debug)]
 #[diesel(belongs_to(User))]
 #[diesel(belongs_to(Role))]
+#[diesel(table_name=users_roles)]
 pub struct UserRole {
     pub id: i32,
     pub user_id: i32,
     pub role_id: i32,
 }
 
-#[derive(Insertable, Serialize, Deserialize)]
+#[derive(Insertable)]
 #[diesel(table_name=users_roles)]
 pub struct NewUserRole {
     pub user_id: i32,

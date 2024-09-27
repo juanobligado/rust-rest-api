@@ -1,18 +1,21 @@
 use reqwest::blocking::{Client, Response};
 use reqwest::StatusCode;
-use serde_json::{Value, json};
+use serde_json::{json, Value};
 
 pub mod common;
-use common::{delete_rustacean, create_test_rustacean, APP_HOST};
+use common::{create_test_rustacean, delete_rustacean, APP_HOST};
 
 #[test]
-fn test_get_rustaceans(){
+fn test_get_rustaceans() {
     // Test get_rustaceans
     // GET /rustaceans
     let client = Client::new();
     let rustacean1 = common::create_test_rustacean(&client);
     let rustacean2 = common::create_test_rustacean(&client);
-    let response = client.get(format!("{}/rustaceans",APP_HOST)).send().unwrap();
+    let response = client
+        .get(format!("{}/rustaceans", APP_HOST))
+        .send()
+        .unwrap();
     assert_eq!(response.status(), StatusCode::OK);
     let json: Value = response.json().unwrap();
     assert!(json.as_array().unwrap().contains(&rustacean1));
@@ -22,78 +25,96 @@ fn test_get_rustaceans(){
 }
 
 #[test]
-fn test_create_rustacean(){
+fn test_create_rustacean() {
     let client = Client::new();
-    let response = client.post(format!("{}/rustaceans",APP_HOST))
+    let response = client
+        .post(format!("{}/rustaceans", APP_HOST))
         .json(&json!({
             "name": "John Doe",
             "email": "foo@bar"
         }))
-        .send().unwrap();
+        .send()
+        .unwrap();
 
     assert_eq!(response.status(), reqwest::StatusCode::CREATED);
     let rustacean: Value = response.json().unwrap();
-    assert_eq!(rustacean, json!({
-        "id": rustacean["id"],
-        "name": "John Doe",
-        "email": "foo@bar",
-        "created_at": rustacean["created_at"]
-    }));
+    assert_eq!(
+        rustacean,
+        json!({
+            "id": rustacean["id"],
+            "name": "John Doe",
+            "email": "foo@bar",
+            "created_at": rustacean["created_at"]
+        })
+    );
     delete_rustacean(&client, rustacean);
 }
 
 #[test]
-fn test_view_rustacean(){
+fn test_view_rustacean() {
     let client = Client::new();
-    let rustacean  = create_test_rustacean(&client);
-    let response = client.get(format!("{}/rustaceans/{}", APP_HOST, rustacean["id"]))
-        .send().unwrap();
+    let rustacean = create_test_rustacean(&client);
+    let response = client
+        .get(format!("{}/rustaceans/{}", APP_HOST, rustacean["id"]))
+        .send()
+        .unwrap();
     assert_eq!(response.status(), StatusCode::OK);
     let rustacean: Value = response.json().unwrap();
-    assert_eq!(rustacean, json!({
-        "id": rustacean["id"],
-        "name": "John Doe",
-        "email": "foo@bar",
-        "created_at": rustacean["created_at"]
-    }));
+    assert_eq!(
+        rustacean,
+        json!({
+            "id": rustacean["id"],
+            "name": "John Doe",
+            "email": "foo@bar",
+            "created_at": rustacean["created_at"]
+        })
+    );
     // View invalid rustacean
     let invalid_rustacean_id = 9999;
-    let response = client.get(format!("{}/rustaceans/{}", APP_HOST, invalid_rustacean_id))
-        .send().unwrap();
+    let response = client
+        .get(format!("{}/rustaceans/{}", APP_HOST, invalid_rustacean_id))
+        .send()
+        .unwrap();
     assert_eq!(response.status(), StatusCode::NOT_FOUND);
     delete_rustacean(&client, rustacean);
 }
 
 #[test]
-fn test_update_rustacean(){
+fn test_update_rustacean() {
     let client = Client::new();
-    let rustacean  = create_test_rustacean(&client);
-    let response = client.put(format!("{}/rustaceans/{}", APP_HOST, rustacean["id"]))
+    let rustacean = create_test_rustacean(&client);
+    let response = client
+        .put(format!("{}/rustaceans/{}", APP_HOST, rustacean["id"]))
         .json(&json!({
             "id": rustacean["id"],
             "name": "Jane Doe",
             "email": "bar@foo",
             "created_at": rustacean["created_at"]
         }))
-        .send().unwrap();
+        .send()
+        .unwrap();
     assert_eq!(response.status(), StatusCode::OK);
 
     let rustacean: Value = response.json().unwrap();
-    assert_eq!(rustacean, json!({
-        "id": rustacean["id"],
-        "name": "Jane Doe",
-        "email": "bar@foo",
-        "created_at": rustacean["created_at"]
-    }));
+    assert_eq!(
+        rustacean,
+        json!({
+            "id": rustacean["id"],
+            "name": "Jane Doe",
+            "email": "bar@foo",
+            "created_at": rustacean["created_at"]
+        })
+    );
     delete_rustacean(&client, rustacean);
 }
 
 #[test]
-fn test_delete_rustacean(){
+fn test_delete_rustacean() {
     let client = Client::new();
-    let rustacean  = create_test_rustacean(&client);
-    let response = client.delete(format!("{}/rustaceans/{}", APP_HOST, rustacean["id"]))
-        .send().unwrap();
+    let rustacean = create_test_rustacean(&client);
+    let response = client
+        .delete(format!("{}/rustaceans/{}", APP_HOST, rustacean["id"]))
+        .send()
+        .unwrap();
     assert_eq!(response.status(), StatusCode::NO_CONTENT);
 }
-
