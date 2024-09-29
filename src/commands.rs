@@ -1,18 +1,19 @@
 use diesel_async::{AsyncPgConnection, AsyncConnection};
 use crate::auth::hash_password;
-use crate::models::NewUser;
+use crate::models::{NewUser, RoleCode};
 use crate::repositories::{RoleRepository, UserRepository};
-use crate::schema::users_roles;
+use std::str::FromStr;
 
 async fn load_db_connection() -> AsyncPgConnection {
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     AsyncPgConnection::establish(&database_url).await
         .expect(&format!("Error connecting to {}", database_url))
 }
-pub async fn create_user(username: &String, password: &String, roles: Vec<String>) {
+pub async fn create_user(username: &String, password: &String, role_codes: Vec<String>) {
     let mut c = load_db_connection().await;
     let password_hash = hash_password(password).unwrap();
     let new_user = NewUser { username: username.to_owned(), password: password_hash.to_string() };
+    let roles = role_codes.iter().map(|r| RoleCode::from_str(r.as_str()).unwrap()).collect();
     let user = UserRepository::create(&mut c, new_user, roles).await.unwrap();
     println!("Created user: {:?}", user);
     let roles = RoleRepository::find_by_user(&mut c, &user).await.unwrap();

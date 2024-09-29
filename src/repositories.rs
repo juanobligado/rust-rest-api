@@ -1,6 +1,7 @@
 use crate::models::*;
 use crate::schema::*;
 use diesel::prelude::*;
+use diesel::serialize::ToSql;
 use diesel_async::{AsyncPgConnection, RunQueryDsl};
 
 
@@ -68,15 +69,15 @@ impl CrateRepository {
     pub async fn update(
         c: &mut AsyncPgConnection,
         id: i32,
-        existingCrate: Crate,
+        a_crate: Crate,
     ) -> QueryResult<Crate> {
         diesel::update(crates::table.find(id))
             .set((
-                crates::rustacean_id.eq(existingCrate.rustacean_id),
-                crates::code.eq(existingCrate.code),
-                crates::name.eq(existingCrate.name),
-                crates::version.eq(existingCrate.version),
-                crates::description.eq(existingCrate.description),
+                crates::rustacean_id.eq(a_crate.rustacean_id),
+                crates::code.eq(a_crate.code),
+                crates::name.eq(a_crate.name),
+                crates::version.eq(a_crate.version),
+                crates::description.eq(a_crate.description),
             ))
             .get_result(c)
             .await
@@ -91,6 +92,10 @@ pub struct UserRepository {
 
 }
 impl UserRepository {
+
+    pub async fn find(c: &mut AsyncPgConnection, user_id: i32) -> QueryResult<User> {
+        users::table.find(user_id).get_result(c).await
+    }
 
     pub async fn find_by_username(c: &mut AsyncPgConnection, user_name: &String) -> QueryResult<User> {
         users::table.filter(users::username.eq(user_name)).get_result(c).await
@@ -108,7 +113,7 @@ impl UserRepository {
             .grouped_by(&users);
         Ok(users.into_iter().zip(result).collect())
     }
-    pub async fn create(c: &mut AsyncPgConnection, new_user: NewUser, role_codes: Vec<String>) -> QueryResult<User> {
+    pub async fn create(c: &mut AsyncPgConnection, new_user: NewUser, role_codes: Vec<RoleCode>) -> QueryResult<User> {
         let user = diesel::insert_into(users::table)
             .values(new_user)
             .get_result::<User>(c)
@@ -118,7 +123,8 @@ impl UserRepository {
                 if let Ok(role) = RoleRepository::find_by_code(c, &role_code).await {
                     NewUserRole { user_id: user.id, role_id: role.id}
                 } else {
-                    let new_role = NewRole { code: role_code.to_owned(), name: role_code.to_owned() };
+                    let name = role_code.to_string();
+                    let new_role = NewRole { code: role_code, name };
                     let role = RoleRepository::create(c, new_role).await?;
                     NewUserRole { user_id: user.id, role_id: role.id }
                 }
@@ -145,7 +151,7 @@ impl RoleRepository {
             .await
     }
 
-    pub async fn find_by_code(c: &mut AsyncPgConnection, code: &String) -> QueryResult<Role> {
+    pub async fn find_by_code(c: &mut AsyncPgConnection, code: &RoleCode) -> QueryResult<Role> {
         roles::table.filter(roles::code.eq(code)).first(c).await
     }
 
